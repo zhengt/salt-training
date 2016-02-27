@@ -1,100 +1,121 @@
 # -*- mode: ruby -*-"
 # vi: set ft=ruby :
 
-box_type1  = "bento/centos-7.1"
+box_type1  = "bento/centos-7.2"
 box_type2  = "ubuntu/trusty64"
 
 nodes = [
   {
-    :vm => 'master',
-    :hostname => 'master',
-    :box => box_type2,
+    :name => 'master1',
+    :box => box_type1,
     :ip => '192.168.56.20',
     :ram => '1024',
     :cpu => '1',
     :scripts => [
-      '/vagrant/bootstrap-salt.sh -P -M'
+      '/vagrant/bootstrap-salt.sh -P -M',
+      'yum -y install salt-cloud sshpass',
+      'cp /vagrant/salt/master/master.p* /etc/salt/pki/master/',
+      'chown root:root /etc/salt/pki/master/master*',
+      'chmod 600 /etc/salt/pki/master/master.pem',
+      'chmod 644 /etc/salt/pki/master/master.pub',
+      'service salt-master restart',
+      'cp /vagrant/salt/minion/minion /etc/salt/minion',
+      'service salt-minion restart'
     ]
   },
   {
-    :vm => 'cweb',
-    :hostname => 'cweb',
+    :name => 'master2',
+    :box => box_type2,
+    :ip => '192.168.56.30',
+    :ram => '1024',
+    :cpu => '1',
+    :scripts => [
+      '/vagrant/bootstrap-salt.sh -P -M',
+      'apt-get -y install salt-cloud sshpass',
+      'cp /vagrant/salt/master/master.p* /etc/salt/pki/master/',
+      'chown root:root /etc/salt/pki/master/master*',
+      'chmod 600 /etc/salt/pki/master/master.pem',
+      'chmod 644 /etc/salt/pki/master/master.pub',
+      'service salt-master restart',
+      'cp /vagrant/salt/minion/minion /etc/salt/minion',
+      'service salt-minion restart'
+    ]
+  },
+  {
+    :name => 'cweb',
     :box => box_type1,
     :ip => '192.168.56.21',
     :ram => '512',
     :cpu => '1',
     :scripts => [
       '/vagrant/bootstrap-salt.sh -P',
-      'echo "master: 192.168.56.20" >> /etc/salt/minion',
-      'echo "id: cweb" >> /etc/salt/minion',
+      'cp /vagrant/salt/minion/minion /etc/salt/minion',
       'service salt-minion restart'
     ]
   },
   {
-    :vm => 'sdev',
-    :hostname => 'sdev',
+    :name => 'sdev',
     :box => box_type1,
     :ip => '192.168.56.22',
     :ram => '512',
     :cpu => '1',
     :scripts => [
       '/vagrant/bootstrap-salt.sh -P',
-      'echo "master: 192.168.56.20" >> /etc/salt/minion',
-      'echo "id: sdev" >> /etc/salt/minion',
+      'cp /vagrant/salt/minion/minion /etc/salt/minion',
       'service salt-minion restart'
     ]
   },
   {
-    :vm => 'redis',
-    :hostname => 'redis',
-    :box => box_type1,
+    :name => 'redis',
+    :box => box_type2,
     :ip => '192.168.56.23',
     :ram => '512',
     :cpu => '1',
     :scripts => [
       '/vagrant/bootstrap-salt.sh -P',
-      'echo "master: 192.168.56.20" >> /etc/salt/minion',
-      'echo "id: redis" >> /etc/salt/minion',
+      'cp /vagrant/salt/minion/minion /etc/salt/minion',
       'service salt-minion restart'
     ]
   },
   {
-    :vm => 'uarchive',
-    :hostname => 'uarchive',
+    :name => 'uarchive',
     :box => box_type2,
     :ip => '192.168.56.24',
     :ram => '512',
     :cpu => '1',
     :scripts => [
       '/vagrant/bootstrap-salt.sh -P',
-      'echo "master: 192.168.56.20" >> /etc/salt/minion',
-      'echo "id: uarchive" >> /etc/salt/minion',
+      'cp /vagrant/salt/minion/minion /etc/salt/minion',
       'service salt-minion restart'
     ]
   }
 ]
 
 Vagrant.configure(2) do |config|
-  nodes.each do |node|
-    config.vm.define node[:vm] do |node_config|
-      config.vm.provider 'virtualbox' do |vb|
-        vb.name = node[:hostname]
-        vb.memory = node[:ram]
-        vb.cpus = node[:cpu]
+  nodes.each do |opts|
+    config.vm.define opts[:name] do |config|
+      config.vm.box = opts[:box]
+      config.vm.hostname = opts[:name]
+      config.vbguest.auto_update = false
+
+      config.vm.provider "virtualbox" do |v|
+        v.customize ["modifyvm", :id, "--name", opts[:name]]
+        v.customize ["modifyvm", :id, "--memory", opts[:ram]]
+        v.customize ["modifyvm", :id, "--cpus", opts[:cpu]]
       end
-      folders = node[:folders]
+
+      config.vm.network :private_network, ip: opts[:ip]
+      
+      opts[:scripts].each do |script|
+        config.vm.provision :shell, :inline => script
+      end
+
+      folders = opts[:folders]
       if folders
         keys = folders.keys
         keys.each do |key|
-          node_config.vm.synced_folder key, folders[key]
+          config.vm.synced_folder key, folders[key]
         end
-      end
-      config.vbguest.auto_update = false
-      node_config.vm.box = node[:box]
-      node_config.vm.hostname = node[:hostname]
-      node_config.vm.network :private_network, ip: node[:ip]
-      node[:scripts].each do |script|
-        node_config.vm.provision :shell, :inline => script
       end
     end
   end
