@@ -12,8 +12,8 @@ nodes = [
     :ram => '1024',
     :cpu => '1',
     :scripts => [
-      '/vagrant/bootstrap-salt.sh -P -M',
-      'yum -y install salt-cloud sshpass',
+      '/vagrant/bootstrap-salt.sh -P -M git v2015.8.7',
+      #'yum -y install salt-cloud sshpass',
       'cp /vagrant/salt/master/master.p* /etc/salt/pki/master/',
       'chown root:root /etc/salt/pki/master/master*',
       'chmod 600 /etc/salt/pki/master/master.pem',
@@ -30,8 +30,8 @@ nodes = [
     :ram => '1024',
     :cpu => '1',
     :scripts => [
-      '/vagrant/bootstrap-salt.sh -P -M',
-      'apt-get -y install salt-cloud sshpass',
+      '/vagrant/bootstrap-salt.sh -P -M git v2015.8.7',
+      #'apt-get -y install salt-cloud sshpass',
       'cp /vagrant/salt/master/master.p* /etc/salt/pki/master/',
       'chown root:root /etc/salt/pki/master/master*',
       'chmod 600 /etc/salt/pki/master/master.pem',
@@ -48,7 +48,7 @@ nodes = [
     :ram => '512',
     :cpu => '1',
     :scripts => [
-      '/vagrant/bootstrap-salt.sh -P',
+      '/vagrant/bootstrap-salt.sh -P git v2015.8.7',
       'cp /vagrant/salt/minion/minion /etc/salt/minion',
       'service salt-minion restart'
     ]
@@ -60,7 +60,7 @@ nodes = [
     :ram => '512',
     :cpu => '1',
     :scripts => [
-      '/vagrant/bootstrap-salt.sh -P',
+      '/vagrant/bootstrap-salt.sh -P git v2015.8.7',
       'cp /vagrant/salt/minion/minion /etc/salt/minion',
       'service salt-minion restart'
     ]
@@ -72,7 +72,7 @@ nodes = [
     :ram => '512',
     :cpu => '1',
     :scripts => [
-      '/vagrant/bootstrap-salt.sh -P',
+      '/vagrant/bootstrap-salt.sh -P git v2015.8.7',
       'cp /vagrant/salt/minion/minion /etc/salt/minion',
       'service salt-minion restart'
     ]
@@ -84,7 +84,7 @@ nodes = [
     :ram => '512',
     :cpu => '1',
     :scripts => [
-      '/vagrant/bootstrap-salt.sh -P',
+      '/vagrant/bootstrap-salt.sh -P git v2015.8.7',
       'cp /vagrant/salt/minion/minion /etc/salt/minion',
       'service salt-minion restart'
     ]
